@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Search, Layers, Plus } from "lucide-react";
+import { Camera, Search, Layers, Plus, Scan } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LocalStorageService } from "@/lib/storage";
 import QRGenerator from "@/components/qr-generator";
 import BatchQRModal from "@/components/batch-qr-modal";
+import CameraScanner from "@/components/camera-scanner";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -23,6 +24,7 @@ export default function Home() {
   
   // Scanner state
   const [scanInput, setScanInput] = useState('');
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
 
   const navigateToStaticInfo = (barcode: string) => {
     setLocation(`/static-info/${encodeURIComponent(barcode)}`);
@@ -72,20 +74,28 @@ export default function Home() {
       return;
     }
 
-    const extinguisher = LocalStorageService.getExtinguisher(scanInput);
+    processScanResult(scanInput);
+  };
+
+  const processScanResult = (barcode: string) => {
+    const extinguisher = LocalStorageService.getExtinguisher(barcode);
     if (extinguisher) {
-      navigateToMaintenanceLog(scanInput);
+      navigateToMaintenanceLog(barcode);
       toast({
         title: "Success",
         description: "Existing extinguisher found!",
       });
     } else {
-      navigateToStaticInfo(scanInput);
+      navigateToStaticInfo(barcode);
       toast({
         title: "Info",
         description: "New extinguisher detected. Please enter details.",
       });
     }
+  };
+
+  const openCameraScanner = () => {
+    setShowCameraScanner(true);
   };
 
   return (
@@ -161,29 +171,38 @@ export default function Home() {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="scan-input">Enter Barcode to Scan</Label>
-              <Input
-                id="scan-input"
-                type="text"
-                value={scanInput}
-                onChange={(e) => setScanInput(e.target.value)}
-                placeholder="e.g., FE-001"
-                className="mt-2"
-              />
-              <Button
-                onClick={handleScan}
-                className="mt-4 btn-primary"
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Scan Barcode
-              </Button>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="scan-input">Enter Barcode Manually</Label>
+                <Input
+                  id="scan-input"
+                  type="text"
+                  value={scanInput}
+                  onChange={(e) => setScanInput(e.target.value)}
+                  placeholder="e.g., FE-001"
+                  className="mt-2"
+                />
+                <Button
+                  onClick={handleScan}
+                  className="mt-4 w-full btn-primary"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Process Barcode
+                </Button>
+              </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-300">
               <div className="text-center text-gray-500">
                 <Camera className="h-16 w-16 mx-auto mb-4" />
-                <p className="text-sm">Camera scanner would be integrated here in production</p>
-                <p className="text-xs mt-2">For now, use the text input to simulate scanning</p>
+                <p className="text-sm font-medium mb-3">Camera Scanner</p>
+                <Button
+                  onClick={openCameraScanner}
+                  className="btn-primary"
+                >
+                  <Scan className="h-4 w-4 mr-2" />
+                  Scan with Camera
+                </Button>
+                <p className="text-xs mt-3 text-gray-400">Use your device camera to scan QR codes</p>
               </div>
             </div>
           </div>
@@ -196,6 +215,13 @@ export default function Home() {
         onClose={() => setShowBatchModal(false)}
         barcodes={generatedBarcodes}
         onNavigateToStaticInfo={navigateToStaticInfo}
+      />
+
+      {/* Camera Scanner Modal */}
+      <CameraScanner
+        isOpen={showCameraScanner}
+        onClose={() => setShowCameraScanner(false)}
+        onScanResult={processScanResult}
       />
     </div>
   );
