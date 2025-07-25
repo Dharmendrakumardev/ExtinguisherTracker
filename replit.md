@@ -13,7 +13,9 @@ Preferred communication style: Simple, everyday language.
 ### January 25, 2025
 - **Database Integration**: Successfully migrated from in-memory storage to PostgreSQL
 - **Camera Scanner**: Added real-time QR code scanning with device camera for mobile users
+- **Gallery Upload**: Added image upload option for QR scanning from saved images
 - **Storage Layer**: Implemented DatabaseStorage class with Drizzle ORM relations
+- **Documentation**: Created comprehensive project structure documentation
 
 ## System Architecture
 
