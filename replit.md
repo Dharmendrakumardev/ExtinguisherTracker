@@ -8,6 +8,13 @@ This is a full-stack web application for managing fire extinguisher maintenance 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### January 25, 2025
+- **Database Integration**: Successfully migrated from in-memory storage to PostgreSQL
+- **Camera Scanner**: Added real-time QR code scanning with device camera for mobile users
+- **Storage Layer**: Implemented DatabaseStorage class with Drizzle ORM relations
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -26,8 +33,8 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot module replacement with Vite integration
 
 ### Data Storage Strategy
-- **Database**: PostgreSQL with Drizzle ORM (configured but not yet implemented)
-- **Current Storage**: In-memory storage for development
+- **Database**: PostgreSQL with Drizzle ORM (fully implemented)
+- **Current Storage**: PostgreSQL database with Drizzle relations
 - **Session Management**: connect-pg-simple for session storage
 - **Migration**: Drizzle Kit for database migrations
 
@@ -75,13 +82,13 @@ Preferred communication style: Simple, everyday language.
 ### Backend Data Flow
 1. Express server handles API requests
 2. Data validation using Zod schemas
-3. Storage operations through abstracted storage interface
+3. PostgreSQL database operations through Drizzle ORM
 4. Response formatting and error handling
 
 ### Storage Abstraction
 - Interface-based storage design for flexibility
-- Current implementation uses in-memory storage
-- Ready for database integration with minimal changes
+- Current implementation uses PostgreSQL database
+- DatabaseStorage class implements full CRUD operations with Drizzle ORM
 
 ## External Dependencies
 

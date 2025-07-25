@@ -1,5 +1,7 @@
-import { type FireExtinguisher, type InsertFireExtinguisher, type MaintenanceLog, type InsertMaintenanceLog, type FireExtinguisherWithLogs } from "@shared/schema";
+import { type FireExtinguisher, type InsertFireExtinguisher, type MaintenanceLog, type InsertMaintenanceLog, type FireExtinguisherWithLogs, fireExtinguishers, maintenanceLogs } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Fire Extinguisher operations
@@ -68,4 +70,47 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getExtinguisher(barcode: string): Promise<FireExtinguisherWithLogs | undefined> {
+    const [extinguisher] = await db.select().from(fireExtinguishers).where(eq(fireExtinguishers.barcode, barcode));
+    if (!extinguisher) return undefined;
+
+    const logs = await db.select().from(maintenanceLogs)
+      .where(eq(maintenanceLogs.extinguisherId, extinguisher.id))
+      .orderBy(maintenanceLogs.dateWorkDone);
+
+    return {
+      ...extinguisher,
+      maintenanceLogs: logs.reverse() // Show newest first
+    };
+  }
+
+  async getAllExtinguishers(): Promise<FireExtinguisher[]> {
+    return await db.select().from(fireExtinguishers);
+  }
+
+  async createExtinguisher(insertExtinguisher: InsertFireExtinguisher): Promise<FireExtinguisher> {
+    const [extinguisher] = await db
+      .insert(fireExtinguishers)
+      .values(insertExtinguisher)
+      .returning();
+    return extinguisher;
+  }
+
+  async addMaintenanceLog(insertLog: InsertMaintenanceLog): Promise<MaintenanceLog> {
+    const [log] = await db
+      .insert(maintenanceLogs)
+      .values(insertLog)
+      .returning();
+    return log;
+  }
+
+  async getMaintenanceLogsByExtinguisher(extinguisherId: string): Promise<MaintenanceLog[]> {
+    return await db.select().from(maintenanceLogs)
+      .where(eq(maintenanceLogs.extinguisherId, extinguisherId))
+      .orderBy(maintenanceLogs.dateWorkDone);
+  }
+}
+
+export const storage = new DatabaseStorage();

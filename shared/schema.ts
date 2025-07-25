@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -20,6 +20,18 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   user: text("user").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Define relations
+export const fireExtinguishersRelations = relations(fireExtinguishers, ({ many }) => ({
+  maintenanceLogs: many(maintenanceLogs),
+}));
+
+export const maintenanceLogsRelations = relations(maintenanceLogs, ({ one }) => ({
+  extinguisher: one(fireExtinguishers, {
+    fields: [maintenanceLogs.extinguisherId],
+    references: [fireExtinguishers.id],
+  }),
+}));
 
 export const insertFireExtinguisherSchema = createInsertSchema(fireExtinguishers).omit({
   id: true,
