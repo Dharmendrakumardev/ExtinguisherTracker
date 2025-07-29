@@ -1,24 +1,24 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const fireExtinguishers = pgTable("fire_extinguishers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const fireExtinguishers = sqliteTable("fire_extinguishers", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   barcode: text("barcode").notNull().unique(),
   extinguisherNo: text("extinguisher_no").notNull(),
   location: text("location").notNull(),
-  dateOfTesting: timestamp("date_of_testing").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  dateOfTesting: integer("date_of_testing", { mode: 'timestamp' }).notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
-export const maintenanceLogs = pgTable("maintenance_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  extinguisherId: varchar("extinguisher_id").notNull().references(() => fireExtinguishers.id),
-  dateWorkDone: timestamp("date_work_done").notNull(),
+export const maintenanceLogs = sqliteTable("maintenance_logs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  extinguisherId: text("extinguisher_id").notNull().references(() => fireExtinguishers.id),
+  dateWorkDone: integer("date_work_done", { mode: 'timestamp' }).notNull(),
   remarks: text("remarks").notNull(),
   user: text("user").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
 // Define relations
